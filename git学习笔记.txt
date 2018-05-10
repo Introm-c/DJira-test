@@ -1,0 +1,159 @@
+以往学习东西只注重实战和效率，往往忽视了记住自己学下的，一旦忘记，几乎从头再来。再者，也无法与他人共享自己的学习成果，未免遗憾且笨拙。趁此次重学基础的机会，坚持笔记。
+
+此文本为练习git所创建 创建时间：2018年5月8日23:33:17
+
+
+GIT 学习笔记
+git init将当前文件夹初始化为git仓库，这个目录在git的概念里也叫工作区Working Dictionary，
+版本库	工作区里有个隐藏目录.git，是版本库Repository。版本库里面有很多东西，最重要的就是暂存区stage或者叫index，还有默认分支master以及指向master的指针HEAD。严格来说HEAD并不是指向提交，而是指向master，master指向提交。我们平时git add就是把文件修改添加到stage，然后在执行git commit的时候把stage里面的东西放到指针指向的分支
+git add <文本名字> 添加文件，可多个
+git commit 提交文件 -m后加描述	commit id不是1，2，3……递增的数字，而是一个SHA1计算出来的一个非常大的数字
+git status 查看本地仓库中是否有文件需要更新或者提交的
+git diff 查看本地仓库文件和线上版本文件的不同
+-- 2018年5月9日21:47:54 --
+git log 查看提交历史 --pretty=oneline
+	--graph --pretty=oneline --abbrev-commit
+	git log --graph命令可以看到分支合并图。
+git reflog	查看命令历史
+git reset --hard HEAD^  上一个版本就是HEAD^，上上一个版本就是HEAD^^，上1000个版本就是HEAD~100，或者直接在hard后面加版本号就可以回到指定版本去
+	而且版本号可以只写一部分能够让git唯一识别即可
+git checkout --<file> 让文件回到最近一次git add或者git commit 的状态。改乱了工作区某个文件的内容，想直接丢弃工作区的修改时
+git reset HEAD <file> 撤销暂存区里文件的修改unstage
+
+-- git 链接 GitHub --
+git remote add origin https://github.com/Introm-c/DJira-test.git 本地仓库跟线上仓库关联
+git remote rm origin 删除关联
+git push -u origin master	将本地master分支同步到线上
+git clone https://github.com/Introm-c/gitskills.git	克隆线上项目到本地
+
+查看远程库信息，使用git remote -v；
+
+从本地推送分支，使用git push origin branch-name，如果推送失败，先用git pull抓取远程的新提交；
+
+在本地创建和远程分支对应的分支，使用git checkout -b branch-name origin/branch-name，本地和远程分支的名称最好一致；
+
+建立本地分支和远程分支的关联，使用git branch --set-upstream branch-name origin/branch-name；
+
+从远程抓取分支，使用git pull，如果有冲突，要先处理冲突。
+
+-- 分支 --
+
+Git鼓励大量使用分支：
+查看分支：git branch
+创建分支：git branch <name>
+切换分支：git checkout <name>
+创建+切换分支：git checkout -b <name>
+合并某分支到当前分支：git merge <name>
+删除分支：git branch -d <name>    -D大D表示强制删除
+ git merge --no-ff -m "merge with no-ff" dev 禁用默认fast forward的merge方式
+ git log --graph --pretty=oneline --abbrev-commit	graph是查看合并图
+
+-- 备份工作区 --
+git stash 保存当前工作区
+git stash list 查看所有保留的工作区
+git stash pop 恢复工作区并将该stash删除
+git stash drop 删除stash
+git stash apply stash@{0} 恢复指定工作区备份
+
+
+-- 分支的选择 --
+master分支是主分支，因此要时刻与远程同步；
+
+dev分支是开发分支，团队所有成员都需要在上面工作，所以也需要与远程同步；
+
+bug分支只用于在本地修复bug，就没必要推到远程了，除非老板要看看你每周到底修复了几个bug；
+
+feature分支是否推到远程，取决于你是否和你的小伙伴合作在上面开发。
+
+-- 标签 --
+命令git tag <name>用于新建一个标签，默认为HEAD，也可以指定一个commit id；
+git tag -a <tagname> -m "blablabla..."可以指定标签信息；
+git tag -s <tagname> -m "blablabla..."可以用PGP签名标签；
+git tag -d v0.1 删除标签
+git push origin :refs/tags/<tagname>可以删除一个远程标签
+git push origin <tagname> 推送一个标签过去
+git push origin --tags 	推送所有标签到线上
+
+命令git tag可以查看所有标签。
+
+还可以对之前的历史提交进行打标签，方法如下：
+1、先查看提交记录
+git log --pretty=oneline --abbrev-commit
+6a5819e merged bug fix 101
+cc17032 fix bug 101
+7825a50 merge with no-ff
+6224937 add merge
+59bc1cb conflict fixed
+400b400 & simple
+75a857c AND simple
+fec145a branch test
+d17efd8 remove test.txt
+2、打标签
+git tag v1.11 6a5819e
+
+-- .gitignore 忽略文件 --
+$ git check-ignore -v App.class
+.gitignore:3:*.class    App.class
+Git会告诉我们，.gitignore的第3行规则忽略了该文件，于是我们就可以知道应该修订哪个规则。
+-- 自定义命令字符 --
+$ git config --global alias.st status 用st 代替status
+$ git config --global alias.co checkout
+$ git config --global alias.ci commit
+$ git config --global alias.br branch
+
+git config --global alias.lg "log --color --graph --pretty=format:'%Cred%h%Creset -%C(yellow)%d%Creset %s %Cgreen(%cr) %C(bold blue)<%an>%Creset' --abbrev-commit"
+
+
+-- 搭建远程git服务器 --
+搭建Git服务器需要准备一台运行Linux的机器，强烈推荐用Ubuntu或Debian，这样，通过几条简单的apt命令就可以完成安装。
+
+假设你已经有sudo权限的用户账号，下面，正式开始安装。
+
+第一步，安装git：
+
+$ sudo apt-get install git
+第二步，创建一个git用户，用来运行git服务：
+
+$ sudo adduser git
+第三步，创建证书登录：
+
+收集所有需要登录的用户的公钥，就是他们自己的id_rsa.pub文件，把所有公钥导入到/home/git/.ssh/authorized_keys文件里，一行一个。
+
+第四步，初始化Git仓库：
+
+先选定一个目录作为Git仓库，假定是/srv/sample.git，在/srv目录下输入命令：
+
+$ sudo git init --bare sample.git
+Git就会创建一个裸仓库，裸仓库没有工作区，因为服务器上的Git仓库纯粹是为了共享，所以不让用户直接登录到服务器上去改工作区，并且服务器上的Git仓库通常都以.git结尾。然后，把owner改为git：
+
+$ sudo chown -R git:git sample.git
+第五步，禁用shell登录：
+
+出于安全考虑，第二步创建的git用户不允许登录shell，这可以通过编辑/etc/passwd文件完成。找到类似下面的一行：
+
+git:x:1001:1001:,,,:/home/git:/bin/bash
+改为：
+
+git:x:1001:1001:,,,:/home/git:/usr/bin/git-shell
+这样，git用户可以正常通过ssh使用git，但无法登录shell，因为我们为git用户指定的git-shell每次一登录就自动退出。
+
+第六步，克隆远程仓库：
+
+现在，可以通过git clone命令克隆远程仓库了，在各自的电脑上运行：
+
+$ git clone git@server:/srv/sample.git
+Cloning into 'sample'...
+warning: You appear to have cloned an empty repository.
+剩下的推送就简单了。
+
+管理公钥
+如果团队很小，把每个人的公钥收集起来放到服务器的/home/git/.ssh/authorized_keys文件里就是可行的。如果团队有几百号人，就没法这么玩了，这时，可以用Gitosis来管理公钥。
+
+这里我们不介绍怎么玩Gitosis了，几百号人的团队基本都在500强了，相信找个高水平的Linux管理员问题不大。
+
+管理权限
+有很多不但视源代码如生命，而且视员工为窃贼的公司，会在版本控制系统里设置一套完善的权限控制，每个人是否有读写权限会精确到每个分支甚至每个目录下。因为Git是为Linux源代码托管而开发的，所以Git也继承了开源社区的精神，不支持权限控制。不过，因为Git支持钩子（hook），所以，可以在服务器端编写一系列脚本来控制提交等操作，达到权限控制的目的。Gitolite就是这个工具。
+
+这里我们也不介绍Gitolite了，不要把有限的生命浪费到权限斗争中。
+
+小结
